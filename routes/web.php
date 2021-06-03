@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BlogController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,12 +14,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+// Route::get('/', 'BlogController@index');
+
+// Auth::routes();
+
+Route::get('/', 'BlogController@index')->name('guest.posts.index');
+
+Route::get('posts/{slug}', 'BlogController@show')->name('guest.posts.show');
+
+Route::prefix('admin')->name('admin.')->namespace('Admin')->group(function() {
+    Route::resource('posts', 'PostController');
 });
 
-Auth::routes();
-
-Route::get('/home', 'HomeController@index')->name('home');
-
-Route::resource('posts', 'PostController');

@@ -1,8 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
+use App\Post;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
@@ -13,7 +16,8 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        $post = Post::all();
+        dd($post);
     }
 
     /**
@@ -23,7 +27,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.posts.create');
     }
 
     /**
@@ -34,7 +38,36 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
+        $data = $request->all();
+
+        if ( !isset($data['published'])) {
+            $data['published'] = false;
+        } else {
+            $data['published'] = true;
+        }
+
+        $data['slug'] = Str::slug($data['title'], '-');
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'date' => 'required|date',
+            'content' => 'required|string',
+            'image' => 'nullable|url'
+        ]);
+
+        // $newPost = new Post();
+        // $newPost->title = $data['title'];
+        // $newPost->date = $data['date'];
+        // $newPost->content = $data['content'];
+        // $newPost->image = $data['image'];
+        // $newPost->slug = Str::slug($data['title'], '-');
+        // $newPost->published = $data['published'];
+        // $newPost->save();
+
+        Post::create($data)
+
+        return redirect()->route('admin.posts.index');
     }
 
     /**
@@ -43,9 +76,9 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Post $post)
     {
-        //
+        
     }
 
     /**
