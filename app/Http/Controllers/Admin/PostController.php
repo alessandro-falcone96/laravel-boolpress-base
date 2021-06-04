@@ -9,6 +9,13 @@ use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
+    protected $validation = [
+        'title' => 'required|string|max:255|unique:posts',
+        'date' => 'required|date',
+        'content' => 'required|string',
+        'image' => 'nullable|url'
+    ];
+
     /**
      * Display a listing of the resource.
      *
@@ -16,8 +23,8 @@ class PostController extends Controller
      */
     public function index()
     {
-        $post = Post::all();
-        dd($post);
+        $posts = Post::all();
+        return view('admin.posts.index', compact('posts'));
     }
 
     /**
@@ -39,6 +46,8 @@ class PostController extends Controller
     public function store(Request $request)
     {
 
+        $request->validate($this->validation);
+
         $data = $request->all();
 
         if ( !isset($data['published'])) {
@@ -49,13 +58,6 @@ class PostController extends Controller
 
         $data['slug'] = Str::slug($data['title'], '-');
 
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'date' => 'required|date',
-            'content' => 'required|string',
-            'image' => 'nullable|url'
-        ]);
-
         // $newPost = new Post();
         // $newPost->title = $data['title'];
         // $newPost->date = $data['date'];
@@ -65,7 +67,7 @@ class PostController extends Controller
         // $newPost->published = $data['published'];
         // $newPost->save();
 
-        Post::create($data)
+        Post::create($data);
 
         return redirect()->route('admin.posts.index');
     }
@@ -78,7 +80,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        
+        return view('admin.posts.show', compact('post'));
     }
 
     /**
@@ -87,9 +89,9 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Post $post)
     {
-        //
+        return view('admin.posts.edit', compact('post'));
     }
 
     /**
@@ -99,9 +101,28 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Post $post)
     {
-        //
+        $request->validate([
+            'title' => 'required|string|max:255|unique:posts,title,' .$post->id,
+            'date' => 'required|date',
+            'content' => 'required|string',
+            'image' => 'nullable|url'
+        ]);
+
+        $data = $request->all();
+
+        if ( !isset($data['published'])) {
+            $data['published'] = false;
+        } else {
+            $data['published'] = true;
+        }
+
+        $data['slug'] = Str::slug($data['title'], '-');
+
+        $post->update($data);
+
+        return redirect()->route('admin.posts.show', $post);
     }
 
     /**
@@ -110,8 +131,10 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Post $post)
     {
-        //
+        $post->delete();
+
+        return redirect()->route('admin.posts.index')->with('message', 'Il post è stato eliminato!');
     }
 }
